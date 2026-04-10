@@ -37,3 +37,12 @@ jobs:
           releaseName: 'Release ${{ github.ref_name }}'
           releaseDraft: false
           prerelease: true
+          includeRelease: true
+
+      - name: Upload portable exe
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: src-tauri/target/release/labmonitor.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,8 +1,8 @@
 [package]
-name = "tauritemp"
+name = "labmonitor"
 version = "0.2.0-alpha"
-description = "A Tauri App"
-authors = ["you"]
+description = "Serial display for Owon Multimeter and Korad PSU"
+authors = ["Krhomv"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,7 +11,7 @@ edition = "2021"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "tauritemp_lib"
+name = "labmonitor_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

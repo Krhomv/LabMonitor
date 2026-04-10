@@ -2065,6 +2065,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "labmonitor"
+version = "0.2.0-alpha"
+dependencies = [
+ "lazy_static",
+ "rand 0.10.0",
+ "serde",
+ "serde_json",
+ "serialport",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
+ "tokio",
+ "warp",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4180,22 +4196,6 @@ dependencies = [
  "dunce",
  "embed-resource",
  "toml 0.9.12+spec-1.1.0",
-]
-
-[[package]]
-name = "tauritemp"
-version = "0.2.0-alpha"
-dependencies = [
- "lazy_static",
- "rand 0.10.0",
- "serde",
- "serde_json",
- "serialport",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
- "tokio",
- "warp",
 ]
 
 [[package]]
