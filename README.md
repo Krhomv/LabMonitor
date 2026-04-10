@@ -1,6 +1,6 @@
 # LabMonitor
 
-![LabMonitor Hero](file:///C:/Users/Krhom/.gemini/antigravity/brain/adbd3489-01d4-4940-8dc1-f044b71426a2/labmonitor_hero_1775838933867.png)
+![LabMonitor Hero](assets/hero.png)
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Flet](https://img.shields.io/badge/UI-Flet-orange.svg)](https://flet.dev/)
