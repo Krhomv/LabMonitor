@@ -301,7 +301,7 @@ pub fn spawn_korad_thread(state: Arc<DeviceState>, config_port: Arc<Mutex<String
                 let p = port_opts.as_mut().unwrap();
                 let _ = p.clear(serialport::ClearBuffer::Input);
 
-                let mut query = |cmd: &str, len: usize| -> Option<String> {
+                let mut query = |p: &mut Box<dyn SerialPort>, cmd: &str, len: usize| -> Option<String> {
                     if let Err(_) = p.write_all(cmd.as_bytes()) {
                         return None;
                     }
@@ -313,7 +313,7 @@ pub fn spawn_korad_thread(state: Arc<DeviceState>, config_port: Arc<Mutex<String
                     }
                 };
 
-                let mut query_byte = |cmd: &str| -> Option<u8> {
+                let mut query_byte = |p: &mut Box<dyn SerialPort>, cmd: &str| -> Option<u8> {
                     if let Err(_) = p.write_all(cmd.as_bytes()) {
                         return None;
                     }
@@ -326,11 +326,11 @@ pub fn spawn_korad_thread(state: Arc<DeviceState>, config_port: Arc<Mutex<String
                 };
 
                 if let (Some(v), Some(i), Some(vs), Some(is_), Some(sb)) = (
-                    query("VOUT1?", 5),
-                    query("IOUT1?", 5),
-                    query("VSET1?", 5),
-                    query("ISET1?", 5),
-                    query_byte("STATUS?")
+                    query(p, "VOUT1?", 5),
+                    query(p, "IOUT1?", 5),
+                    query(p, "VSET1?", 5),
+                    query(p, "ISET1?", 5),
+                    query_byte(p, "STATUS?")
                 ) {
                     let mut data = state.korad.lock().unwrap();
                     if let Ok(vf) = v.parse::<f64>() { data.v_out = format!("{:05.2}", vf); }
