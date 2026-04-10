@@ -6,7 +6,7 @@ mod devices;
 
 use config::{AppConfig, ConfigManager};
 use devices::{spawn_korad_thread, spawn_owon_thread, DeviceState, KoradData, OwonData};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use serialport::available_ports;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -64,8 +64,12 @@ fn get_serial_ports() -> Vec<String> {
 }
 
 #[tauri::command]
-fn test_owon(port: String) -> bool {
+fn test_owon(state: State<AppState>, port: String) -> bool {
+    if port.is_empty() { return false; }
     if port == "Simulated" {
+        return true;
+    }
+    if *state.owon_port.lock().unwrap() == port && state.device_state.owon.lock().unwrap().is_communicating {
         return true;
     }
     if let Ok(mut p) = serialport::new(&port, 115_200)
@@ -86,8 +90,12 @@ fn test_owon(port: String) -> bool {
 }
 
 #[tauri::command]
-fn test_korad(port: String) -> bool {
+fn test_korad(state: State<AppState>, port: String) -> bool {
+    if port.is_empty() { return false; }
     if port == "Simulated" {
+        return true;
+    }
+    if *state.korad_port.lock().unwrap() == port && state.device_state.korad.lock().unwrap().is_communicating {
         return true;
     }
     if let Ok(mut p) = serialport::new(&port, 9600)

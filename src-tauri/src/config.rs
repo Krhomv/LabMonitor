@@ -10,6 +10,8 @@ pub struct AppConfig {
     pub bg_color: String,
     pub font_color: String,
     pub accent_color: String,
+    pub device_bg_color: String,
+    pub watts_color: String,
 }
 
 impl Default for AppConfig {
@@ -18,8 +20,10 @@ impl Default for AppConfig {
             owon_port: "".to_string(),
             korad_port: "".to_string(),
             bg_color: "#0f0f0f".to_string(),
-            font_color: "#00ff41".to_string(),
+            font_color: "#f97c02".to_string(),
             accent_color: "#2196f3".to_string(),
+            device_bg_color: "#141414".to_string(),
+            watts_color: "#fbbf24".to_string(),
         }
     }
 }
@@ -31,6 +35,9 @@ pub struct ConfigManager {
 
 impl ConfigManager {
     pub fn new() -> Self {
+        #[cfg(debug_assertions)]
+        let file_path = PathBuf::from("../config.json");
+        #[cfg(not(debug_assertions))]
         let file_path = PathBuf::from("config.json");
         let config = if file_path.exists() {
             if let Ok(contents) = fs::read_to_string(&file_path) {

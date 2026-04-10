@@ -16,10 +16,10 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', sans-serif;
-  background-color: var(--bg-color);
   color: #fff;
   user-select: none;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .container {
@@ -121,11 +121,11 @@ body {
 
 .mode-chip {
   flex: 1;
-  padding: 6px 4px;
+  padding: 8px 6px;
   background: #000;
   border: 1px solid #222;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
   text-align: center;
   color: #888;
@@ -152,7 +152,7 @@ body {
   font-size: 60px;
   font-weight: 700;
   line-height: 1;
-  text-shadow: 0 0 15px rgba(0,255,65,0.2);
+  white-space: pre;
 }
 
 .sign {
@@ -182,11 +182,11 @@ body {
 }
 
 .badge {
-  padding: 4px 6px;
+  padding: 6px 8px;
   background: #000;
   border: 1px solid #222;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
   transition: all 0.3s;
   color: #666;
@@ -210,23 +210,10 @@ body {
   color: #fff;
 }
 
-.status-badge {
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  transition: all 0.3s;
-}
-
-.status-badge.on {
-  background: #15803d;
-  border: 1px solid #4ade80;
-  color: #000;
-}
-
-.status-badge.off {
-  background: #b91c1c;
-  color: #000;
+.badge.out-on {
+  background: #14532d;
+  border-color: #4ade80;
+  color: #fff;
 }
 
 /* PSU Display */
@@ -241,13 +228,13 @@ body {
 .psu-row {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   width: 100%;
 }
 
 .psu-set {
-  font-size: 18px;
-  color: #9ca3af;
+  font-size: 22px;
+  color: #d1d5db;
   margin-bottom: -5px;
 }
 
@@ -263,7 +250,6 @@ body {
   font-weight: 700;
   color: #fbbf24;
   margin-top: 5px;
-  text-shadow: 0 0 10px rgba(251,191,36,0.5);
 }
 
 /* Settings */
@@ -369,4 +355,41 @@ body {
   height: 100vh;
   font-size: 14px;
   color: #888;
+}
+
+.test-btn {
+  padding: 4px 8px;
+  background: #222;
+  border: 1px solid #444;
+  color: #aaa;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  transition: all 0.2s;
+  width: 60px;
+  text-align: center;
+}
+
+.test-btn:hover {
+  background: #333;
+  color: #fff;
+}
+
+.test-btn.testing {
+  color: #fbbf24;
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.test-btn.success {
+  background: #14532d;
+  border-color: #4ade80;
+  color: #4ade80;
+}
+
+.test-btn.error {
+  background: #7f1d1d;
+  border-color: #f87171;
+  color: #f87171;
 }

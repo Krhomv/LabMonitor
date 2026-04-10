@@ -8,6 +8,8 @@ interface AppConfig {
   bg_color: string;
   font_color: string;
   accent_color: string;
+  device_bg_color: string;
+  watts_color: string;
 }
 
 interface OwonData {
@@ -40,11 +42,13 @@ interface DevicesState {
 
 function App() {
   const [config, setConfig] = useState<AppConfig>({
-    owon_port: "", korad_port: "", bg_color: "#0f0f0f", font_color: "#00ff41", accent_color: "#2196f3"
+    owon_port: "", korad_port: "", bg_color: "#0f0f0f", font_color: "#f97c02", accent_color: "#2196f3", device_bg_color: "#141414", watts_color: "#fbbf24"
   });
   const [state, setState] = useState<DevicesState | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [ports, setPorts] = useState<string[]>([]);
+  const [owonTest, setOwonTest] = useState<string | null>(null);
+  const [koradTest, setKoradTest] = useState<string | null>(null);
 
   useEffect(() => {
     invoke<AppConfig>("get_config").then(setConfig).catch(console.error);
@@ -97,6 +101,10 @@ function App() {
   const modesPart1 = ["VOLT", "VOLT AC", "CURR", "CURR AC", "RES"];
   const modesPart2 = ["CONT", "DIOD", "CAP", "FREQ", "TEMP"];
 
+  const isRedAlert = (owon?.mode === "CONT" && owon?.unit === "Ω" && (owon?.raw_float ?? 0) < 50.0) || 
+                     (owon?.mode === "DIOD" && owon?.unit === "V" && (owon?.raw_float ?? 0) < 0.2);
+  const activeFontColor = isRedAlert ? "#ef4444" : config.font_color;
+
   return (
     <div className="container" style={{ backgroundColor: config.bg_color, color: config.font_color }}>
       {showSettings ? (
@@ -109,17 +117,41 @@ function App() {
             </div>
             <div className="settings-row">
               <label>Owon Port</label>
-              <select value={config.owon_port} onChange={e => setConfig({...config, owon_port: e.target.value})}>
-                <option value="">Select...</option>
-                {ports.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
+              <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                <select value={config.owon_port} onChange={e => setConfig({...config, owon_port: e.target.value})}>
+                  <option value="">Select...</option>
+                  {ports.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+                <button 
+                  className={`test-btn ${owonTest || ''}`}
+                  onClick={async () => {
+                    setOwonTest("testing");
+                    try {
+                      const ok = await invoke<boolean>("test_owon", { port: config.owon_port });
+                      setOwonTest(ok ? "success" : "error");
+                    } catch { setOwonTest("error"); }
+                  }}
+                >{owonTest === 'testing' ? 'PING...' : owonTest === 'success' ? 'OK' : owonTest === 'error' ? 'FAIL' : 'TEST'}</button>
+              </div>
             </div>
             <div className="settings-row">
               <label>Korad Port</label>
-              <select value={config.korad_port} onChange={e => setConfig({...config, korad_port: e.target.value})}>
-                <option value="">Select...</option>
-                {ports.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
+              <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                <select value={config.korad_port} onChange={e => setConfig({...config, korad_port: e.target.value})}>
+                  <option value="">Select...</option>
+                  {ports.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+                <button 
+                  className={`test-btn ${koradTest || ''}`}
+                  onClick={async () => {
+                    setKoradTest("testing");
+                    try {
+                      const ok = await invoke<boolean>("test_korad", { port: config.korad_port });
+                      setKoradTest(ok ? "success" : "error");
+                    } catch { setKoradTest("error"); }
+                  }}
+                >{koradTest === 'testing' ? 'PING...' : koradTest === 'success' ? 'OK' : koradTest === 'error' ? 'FAIL' : 'TEST'}</button>
+              </div>
             </div>
           </div>
           
@@ -127,11 +159,23 @@ function App() {
             <div className="settings-header"><span>Appearance</span></div>
             <div className="settings-row">
               <label>BG Color</label>
-              <input type="text" value={config.bg_color} onChange={e => setConfig({...config, bg_color: e.target.value})} />
+              <input type="color" value={config.bg_color} onChange={e => setConfig({...config, bg_color: e.target.value})} style={{ padding: 0 }} />
+            </div>
+            <div className="settings-row">
+              <label>Device BG Color</label>
+              <input type="color" value={config.device_bg_color} onChange={e => setConfig({...config, device_bg_color: e.target.value})} style={{ padding: 0 }} />
             </div>
             <div className="settings-row">
               <label>Font Color</label>
-              <input type="text" value={config.font_color} onChange={e => setConfig({...config, font_color: e.target.value})} />
+              <input type="color" value={config.font_color} onChange={e => setConfig({...config, font_color: e.target.value})} style={{ padding: 0 }} />
+            </div>
+            <div className="settings-row">
+              <label>Accent Color</label>
+              <input type="color" value={config.accent_color} onChange={e => setConfig({...config, accent_color: e.target.value})} style={{ padding: 0 }} />
+            </div>
+            <div className="settings-row">
+              <label>Watts Color</label>
+              <input type="color" value={config.watts_color} onChange={e => setConfig({...config, watts_color: e.target.value})} style={{ padding: 0 }} />
             </div>
           </div>
 
@@ -147,7 +191,7 @@ function App() {
             <button className="settings-btn" onClick={openSettings}>⚙</button>
           </div>
 
-          <div className="card">
+          <div className="card" style={{ backgroundColor: config.device_bg_color }}>
             <div className="card-header">
               <div className={`indicator ${owon?.is_communicating ? 'on' : 'off'}`}></div>
               <span>MULTIMETER</span>
@@ -172,21 +216,15 @@ function App() {
             </div>
 
             <div className="display-area">
-              <div className="value-container">
+              <div className="value-container" style={{ textShadow: `0 0 15px ${activeFontColor}33`, color: activeFontColor }}>
                 <span className="sign">{owon?.value ? owon.value.charAt(0) : " "}</span>
-                <span className="value" style={{ 
-                  color: (owon?.mode === "CONT" && owon.unit === "Ω" && owon.raw_float < 50.0) || 
-                         (owon?.mode === "DIOD" && owon.unit === "V" && owon.raw_float < 0.2) ? "#ef4444" : config.font_color 
-                }}>{owon?.value ? owon.value.slice(1) : "0.0000"}</span>
+                <span className="value">{owon?.value ? owon.value.slice(1) : "0.0000"}</span>
               </div>
-              <div className="unit" style={{ 
-                  color: (owon?.mode === "CONT" && owon.unit === "Ω" && owon.raw_float < 50.0) || 
-                         (owon?.mode === "DIOD" && owon.unit === "V" && owon.raw_float < 0.2) ? "#ef4444" : config.font_color 
-                }}>{owon?.unit || "VDC"}</div>
+              <div className="unit" style={{ color: activeFontColor }}>{owon?.unit || "VDC"}</div>
             </div>
           </div>
 
-          <div className="card">
+          <div className="card" style={{ backgroundColor: config.device_bg_color }}>
             <div className="card-header">
               <div className={`indicator ${korad?.is_communicating ? 'on' : 'off'}`}></div>
               <span>POWER SUPPLY</span>
@@ -199,7 +237,7 @@ function App() {
                 <div className={`badge ${korad?.ocp ? 'alert' : ''}`}>OCP</div>
                 <div className={`badge mode-badge ${korad?.mode === 'CC' ? 'cc' : 'cv'}`}>{korad?.mode || 'CV'}</div>
               </div>
-              <div className={`status-badge ${korad?.output ? 'on' : 'off'}`}>
+              <div className={`badge ${korad?.output ? 'out-on' : ''}`}>
                 {korad?.output ? "OUTPUT ON" : "OUTPUT OFF"}
               </div>
             </div>
@@ -213,7 +251,7 @@ function App() {
                 <div className="psu-set">{korad?.i_set || "0.000"} A</div>
                 <div className="psu-val">{korad?.i_out || "0.000"} A</div>
               </div>
-              <div className="psu-watts">
+              <div className="psu-watts" style={{ color: config.watts_color, textShadow: `0 0 10px ${config.watts_color}80` }}>
                 {korad?.watts || "0.00"} W
               </div>
             </div>

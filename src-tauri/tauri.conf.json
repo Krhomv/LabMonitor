@@ -14,8 +14,8 @@
       {
         "title": "LabMonitor",
         "width": 400,
-        "height": 750,
-        "resizable": false,
+        "height": 640,
+        "resizable": true,
         "maximizable": false
       }
     ],

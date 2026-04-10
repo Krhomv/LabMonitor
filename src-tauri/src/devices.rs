@@ -88,7 +88,7 @@ fn format_owon_value(raw: &str, mode: &str) -> (String, String, f64) {
     let mut val = raw.parse::<f64>().unwrap_or(0.0);
     let mut unit = get_base_unit(mode);
 
-    if val >= 1e9 && (mode.contains("RES") || mode.contains("CONT") || mode.contains("DIOD")) {
+    if val.abs() >= 1e9 {
         return ("   OL  ".to_string(), unit.to_string(), val);
     }
     if val.abs() < 1e-12 {
@@ -113,6 +113,10 @@ fn format_owon_value(raw: &str, mode: &str) -> (String, String, f64) {
     }
 
     let v_abs = val.abs();
+    if v_abs >= 99999.5 {
+        return ("   OL  ".to_string(), unit.to_string(), val);
+    }
+    
     let mut out_val = if v_abs >= 9999.95 { format!("{:.0}", v_abs) }
     else if v_abs >= 999.995 { format!("{:.1}", v_abs) }
     else if v_abs >= 99.9995 { format!("{:.2}", v_abs) }
@@ -125,7 +129,8 @@ fn format_owon_value(raw: &str, mode: &str) -> (String, String, f64) {
         while out_val.len() < 6 { out_val.insert(0, ' '); }
     }
 
-    let sign = if val < 0.0 { "-" } else { " " };
+    let is_zero = out_val.chars().all(|c| c == '0' || c == '.' || c == ' ');
+    let sign = if val < 0.0 && !is_zero { "-" } else { " " };
     (format!("{}{}", sign, out_val), unit.to_string(), val)
 }
 
@@ -136,6 +141,7 @@ pub fn spawn_owon_thread(state: Arc<DeviceState>, config_port: Arc<Mutex<String>
         let mut simulated = false;
         let mut last_attempt = Instant::now() - Duration::from_secs(10);
         let mut last_mode = String::new();
+        let mut meas_count = 0;
 
         loop {
             let current_config_port = config_port.lock().unwrap().clone();
@@ -174,7 +180,7 @@ pub fn spawn_owon_thread(state: Arc<DeviceState>, config_port: Arc<Mutex<String>
                     match serialport::new(&port_name, 115_200)
                         .timeout(Duration::from_millis(200))
                         .open() {
-                        Ok(mut p) => {
+                        Ok(p) => {
                             let _ = p.clear(serialport::ClearBuffer::All);
                             port_opts = Some(p);
                             state.owon.lock().unwrap().connected = true;
@@ -188,46 +194,78 @@ pub fn spawn_owon_thread(state: Arc<DeviceState>, config_port: Arc<Mutex<String>
                 }
             } else {
                 let p = port_opts.as_mut().unwrap();
-                let _ = p.clear(serialport::ClearBuffer::Input);
 
-                if let Err(_) = p.write_all(b"FUNC?\n") {
-                    port_opts = None;
-                    continue;
-                }
-                
-                let mut buf = [0u8; 128];
-                let mut resp_mode = String::new();
-                if let Ok(len) = p.read(&mut buf) {
-                    resp_mode = String::from_utf8_lossy(&buf[..len]).trim().replace("\"", "").to_uppercase();
-                }
-
-                if let Err(_) = p.write_all(b"MEAS?\n") {
-                    port_opts = None;
-                    continue;
-                }
-                
-                let mut resp_meas = String::new();
-                if let Ok(len) = p.read(&mut buf) {
-                    resp_meas = String::from_utf8_lossy(&buf[..len]).trim().to_string();
-                }
-
-                let mut data = state.owon.lock().unwrap();
-                if !resp_mode.is_empty() {
-                    if resp_mode != last_mode {
-                        data.value = " 0.0000".to_string();
-                        last_mode = resp_mode.clone();
+                let query = |p: &mut Box<dyn SerialPort>, cmd: &str| -> Result<String, std::io::Error> {
+                    let _ = p.clear(serialport::ClearBuffer::Input);
+                    if let Err(e) = p.write_all(cmd.as_bytes()) {
+                        return Err(e);
                     }
-                    data.mode = resp_mode;
+                    let mut resp = String::new();
+                    let mut buf = [0u8; 128];
+                    let start = Instant::now();
+                    while start.elapsed() < Duration::from_millis(250) {
+                        let read_success = match p.read(&mut buf) {
+                            Ok(len) if len > 0 => {
+                                resp.push_str(&String::from_utf8_lossy(&buf[..len]));
+                                if resp.contains('\n') {
+                                    break;
+                                }
+                                true
+                            }
+                            Ok(_) => false,
+                            Err(_) => false,
+                        };
+                        if !read_success {
+                            thread::sleep(Duration::from_millis(5));
+                        }
+                    }
+                    Ok(resp.trim().to_string())
+                };
+
+                let mut write_failed = false;
+
+                if meas_count >= 5 {
+                    match query(p, "FUNC?\n") {
+                        Ok(resp_mode) => {
+                            let mut data = state.owon.lock().unwrap();
+                            let resp_mode = resp_mode.replace("\"", "").to_uppercase();
+                            if !resp_mode.is_empty() {
+                                if resp_mode != last_mode {
+                                    data.value = " 0.0000".to_string();
+                                    last_mode = resp_mode.clone();
+                                }
+                                data.mode = resp_mode;
+                                data.is_communicating = true;
+                            } else {
+                                data.is_communicating = false;
+                            }
+                        }
+                        Err(_) => write_failed = true,
+                    }
+                    meas_count = 0;
+                } else {
+                    match query(p, "MEAS?\n") {
+                        Ok(resp_meas) => {
+                            let mut data = state.owon.lock().unwrap();
+                            if !resp_meas.is_empty() {
+                                let parts: Vec<&str> = resp_meas.split(',').collect();
+                                let formatted = format_owon_value(parts[0], &data.mode);
+                                data.value = formatted.0;
+                                data.unit = formatted.1;
+                                data.raw_float = formatted.2;
+                                data.is_communicating = true;
+                            } else {
+                                data.is_communicating = false;
+                            }
+                        }
+                        Err(_) => write_failed = true,
+                    }
+                    meas_count += 1;
                 }
 
-                if !resp_meas.is_empty() {
-                    let parts: Vec<&str> = resp_meas.split(',').collect();
-                    let formatted = format_owon_value(parts[0], &data.mode);
-                    data.value = formatted.0;
-                    data.unit = formatted.1;
-                    data.raw_float = formatted.2;
-                    data.is_communicating = true;
-                } else {
+                if write_failed {
+                    port_opts = None; // Force reconnect only on write failure
+                    let mut data = state.owon.lock().unwrap();
                     data.is_communicating = false;
                 }
             }
@@ -285,7 +323,7 @@ pub fn spawn_korad_thread(state: Arc<DeviceState>, config_port: Arc<Mutex<String
                     match serialport::new(&port_name, 9600)
                         .timeout(Duration::from_millis(200))
                         .open() {
-                        Ok(mut p) => {
+                        Ok(p) => {
                             let _ = p.clear(serialport::ClearBuffer::All);
                             port_opts = Some(p);
                             state.korad.lock().unwrap().connected = true;
@@ -301,7 +339,7 @@ pub fn spawn_korad_thread(state: Arc<DeviceState>, config_port: Arc<Mutex<String
                 let p = port_opts.as_mut().unwrap();
                 let _ = p.clear(serialport::ClearBuffer::Input);
 
-                let mut query = |p: &mut Box<dyn SerialPort>, cmd: &str, len: usize| -> Option<String> {
+                let query = |p: &mut Box<dyn SerialPort>, cmd: &str, len: usize| -> Option<String> {
                     if let Err(_) = p.write_all(cmd.as_bytes()) {
                         return None;
                     }
@@ -313,7 +351,7 @@ pub fn spawn_korad_thread(state: Arc<DeviceState>, config_port: Arc<Mutex<String
                     }
                 };
 
-                let mut query_byte = |p: &mut Box<dyn SerialPort>, cmd: &str| -> Option<u8> {
+                let query_byte = |p: &mut Box<dyn SerialPort>, cmd: &str| -> Option<u8> {
                     if let Err(_) = p.write_all(cmd.as_bytes()) {
                         return None;
                     }
