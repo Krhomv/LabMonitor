@@ -60,5 +60,18 @@ Access the settings via the **Gear Icon** in the top right corner to:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## 🚀 Releases & Deployment
+
+This project uses **GitHub Actions** to automatically build and package the application for Windows.
+
+### How to create a Release:
+1.  **Tag the code**: Push a new tag to the repository (e.g., `v1.0.0`).
+    ```bash
+    git tag v1.0.0
+    git push origin v1.0.0
+    ```
+2.  **Automated Build**: GitHub will automatically trigger a build, package the app into a `.zip` file, and create a new Release on your GitHub page with the executable attached.
+
 ---
-*Created with ❤️ for the electronics community.*
+
+*Built with ❤️ for the FPV and Electronics community.*
