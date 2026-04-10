@@ -10,6 +10,7 @@ interface AppConfig {
   accent_color: string;
   device_bg_color: string;
   watts_color: string;
+  overlay_port: number;
 }
 
 interface OwonData {
@@ -42,7 +43,7 @@ interface DevicesState {
 
 function App() {
   const [config, setConfig] = useState<AppConfig>({
-    owon_port: "", korad_port: "", bg_color: "#0f0f0f", font_color: "#f97c02", accent_color: "#2196f3", device_bg_color: "#141414", watts_color: "#fbbf24"
+    owon_port: "", korad_port: "", bg_color: "#0f0f0f", font_color: "#f97c02", accent_color: "#2196f3", device_bg_color: "#141414", watts_color: "#fbbf24", overlay_port: 8765
   });
   const [state, setState] = useState<DevicesState | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -179,6 +180,22 @@ function App() {
             </div>
           </div>
 
+          <div className="settings-section">
+            <div className="settings-header"><span>OBS Overlay</span></div>
+            <div className="settings-row">
+              <label>Port</label>
+              <input type="number" value={config.overlay_port} onChange={e => setConfig({...config, overlay_port: parseInt(e.target.value) || 8765})} style={{ width: 80 }} />
+            </div>
+            <div className="settings-row">
+              <label>Multimeter</label>
+              <button className="copy-btn" onClick={() => navigator.clipboard.writeText(`http://localhost:${config.overlay_port}/overlay/owon`)}>Copy URL</button>
+            </div>
+            <div className="settings-row">
+              <label>Power Supply</label>
+              <button className="copy-btn" onClick={() => navigator.clipboard.writeText(`http://localhost:${config.overlay_port}/overlay/korad`)}>Copy URL</button>
+            </div>
+          </div>
+
           <div className="settings-actions">
             <button className="save-btn" style={{ backgroundColor: config.accent_color }} onClick={saveConfig}>SAVE & APPLY</button>
             <button className="cancel-btn" onClick={() => setShowSettings(false)}>CANCEL</button>
@@ -243,13 +260,23 @@ function App() {
             </div>
 
             <div className="psu-display">
-              <div className="psu-row">
-                <div className="psu-set">{korad?.v_set || "0.000"} V</div>
-                <div className="psu-val">{korad?.v_out || "0.000"} V</div>
+              <div className="display-area">
+                <div className="value-container" style={{
+                  color: korad?.output ? config.font_color : '#555',
+                  textShadow: korad?.output ? `0 0 15px ${config.font_color}33` : 'none'
+                }}>
+                  {korad?.output ? (korad?.v_out || "00.00") : (korad?.v_set || "00.00")}
+                </div>
+                <div className="unit" style={{ color: korad?.output ? config.font_color : '#555' }}>V</div>
               </div>
-              <div className="psu-row">
-                <div className="psu-set">{korad?.i_set || "0.000"} A</div>
-                <div className="psu-val">{korad?.i_out || "0.000"} A</div>
+              <div className="display-area">
+                <div className="value-container" style={{
+                  color: korad?.output ? config.font_color : '#555',
+                  textShadow: korad?.output ? `0 0 15px ${config.font_color}33` : 'none'
+                }}>
+                  {korad?.output ? (korad?.i_out || "0.000") : (korad?.i_set || "0.000")}
+                </div>
+                <div className="unit" style={{ color: korad?.output ? config.font_color : '#555' }}>A</div>
               </div>
               <div className="psu-watts" style={{ color: config.watts_color, textShadow: `0 0 10px ${config.watts_color}80` }}>
                 {korad?.watts || "0.00"} W

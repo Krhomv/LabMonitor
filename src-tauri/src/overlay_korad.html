@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LabMonitor - Power Supply Overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    color: #fff;
+    user-select: none;
+    overflow: hidden;
+  }
+  .card {
+    background: var(--device-bg, rgba(20,20,20,0.7));
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 15px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    display: inline-block;
+    min-width: 360px;
+  }
+  .card-inner { display: flex; flex-direction: column; gap: 12px; }
+  .card-header { display: flex; align-items: center; gap: 8px; }
+  .indicator { width: 8px; height: 8px; border-radius: 50%; transition: background-color 0.3s; }
+  .indicator.on { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+  .indicator.off { background-color: #ef4444; }
+  .card-header span { font-size: 11px; font-weight: 700; color: #777; letter-spacing: 0.5px; }
+  .line { flex-grow: 1; height: 1px; background: linear-gradient(90deg, #333, transparent); margin-left: 5px; }
+  .psu-badges { display: flex; justify-content: space-between; align-items: center; }
+  .badges-left { display: flex; gap: 5px; }
+  .badge {
+    padding: 6px 8px; background: #000; border: 1px solid #222;
+    border-radius: 4px; font-size: 13px; font-weight: 700;
+    transition: all 0.3s; color: #666;
+  }
+  .badge.alert { background: #7f1d1d; border-color: #f87171; color: #fff; }
+  .badge.cv { background: #14532d; border-color: #4ade80; color: #fff; }
+  .badge.cc { background: #1e3a8a; border-color: #60a5fa; color: #fff; }
+  .badge.out-on { background: #14532d; border-color: #4ade80; color: #fff; }
+  .psu-display {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .psu-row { position: relative; display: flex; justify-content: center; align-items: baseline; width: 100%; }
+  .display-area { display: flex; align-items: flex-start; justify-content: center; padding-top: 5px; }
+  .value-container {
+    display: flex; align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 60px; font-weight: 700; line-height: 1; white-space: pre;
+  }
+  .unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px; margin-left: 5px; margin-top: 10px; color: inherit;
+  }
+  .psu-watts { font-size: 30px; font-weight: 700; margin-top: 5px; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="card-inner">
+    <div class="card-header">
+      <div class="indicator off" id="indicator"></div>
+      <span>POWER SUPPLY</span>
+      <div class="line"></div>
+    </div>
+    <div class="psu-badges">
+      <div class="badges-left">
+        <div class="badge" id="badge-ovp">OVP</div>
+        <div class="badge" id="badge-ocp">OCP</div>
+        <div class="badge" id="badge-mode">CV</div>
+      </div>
+      <div class="badge" id="badge-output">OUTPUT OFF</div>
+    </div>
+    <div class="psu-display">
+      <div class="display-area">
+        <div class="value-container" id="v-out">00.00</div>
+        <div class="unit" id="v-unit">V</div>
+      </div>
+      <div class="display-area">
+        <div class="value-container" id="i-out">0.000</div>
+        <div class="unit" id="i-unit">A</div>
+      </div>
+      <div class="psu-watts" id="watts">0.00 W</div>
+    </div>
+  </div>
+</div>
+<script>
+async function poll() {
+  try {
+    const res = await fetch("/api/state");
+    const data = await res.json();
+    const k = data.korad;
+    const cfg = data.config;
+
+    // Indicator
+    document.getElementById("indicator").className = "indicator " + (k.is_communicating ? "on" : "off");
+
+    // Badges
+    const ovp = document.getElementById("badge-ovp");
+    ovp.className = "badge" + (k.ovp ? " alert" : "");
+    const ocp = document.getElementById("badge-ocp");
+    ocp.className = "badge" + (k.ocp ? " alert" : "");
+    const mode = document.getElementById("badge-mode");
+    mode.textContent = k.mode || "CV";
+    mode.className = "badge " + (k.mode === "CC" ? "cc" : "cv");
+    const output = document.getElementById("badge-output");
+    output.textContent = k.output ? "OUTPUT ON" : "OUTPUT OFF";
+    output.className = "badge" + (k.output ? " out-on" : "");
+
+    // Values — show set values (gray) when output off, live values (colored) when on
+    const fontColor = cfg.font_color || "#f97c02";
+    const isOn = k.output;
+    const valColor = isOn ? fontColor : "#555";
+    const vOut = document.getElementById("v-out");
+    vOut.textContent = isOn ? (k.v_out || "00.00") : (k.v_set || "00.00");
+    vOut.style.color = valColor;
+    vOut.style.textShadow = isOn ? ("0 0 15px " + fontColor + "33") : "none";
+    document.getElementById("v-unit").style.color = valColor;
+    const iOut = document.getElementById("i-out");
+    iOut.textContent = isOn ? (k.i_out || "0.000") : (k.i_set || "0.000");
+    iOut.style.color = valColor;
+    iOut.style.textShadow = isOn ? ("0 0 15px " + fontColor + "33") : "none";
+    document.getElementById("i-unit").style.color = valColor;
+    
+    const wattsEl = document.getElementById("watts");
+    wattsEl.textContent = (k.watts || "0.00") + " W";
+    wattsEl.style.color = cfg.watts_color || "#fbbf24";
+    wattsEl.style.textShadow = "0 0 10px " + (cfg.watts_color || "#fbbf24") + "80";
+
+    // Card background
+    document.getElementById("card").style.background = cfg.device_bg_color || "rgba(20,20,20,0.7)";
+  } catch(e) { /* silently retry */ }
+}
+
+setInterval(poll, 150);
+poll();
+</script>
+</body>
+</html>

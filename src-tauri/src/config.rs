@@ -12,7 +12,11 @@ pub struct AppConfig {
     pub accent_color: String,
     pub device_bg_color: String,
     pub watts_color: String,
+    #[serde(default = "default_overlay_port")]
+    pub overlay_port: u16,
 }
+
+fn default_overlay_port() -> u16 { 8765 }
 
 impl Default for AppConfig {
     fn default() -> Self {
@@ -24,6 +28,7 @@ impl Default for AppConfig {
             accent_color: "#2196f3".to_string(),
             device_bg_color: "#141414".to_string(),
             watts_color: "#fbbf24".to_string(),
+            overlay_port: 8765,
         }
     }
 }

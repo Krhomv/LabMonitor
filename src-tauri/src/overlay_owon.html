@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LabMonitor - Multimeter Overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    color: #fff;
+    user-select: none;
+    overflow: hidden;
+  }
+  .card {
+    background: var(--device-bg, rgba(20,20,20,0.7));
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 15px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    display: inline-block;
+    min-width: 360px;
+  }
+  .card-inner { display: flex; flex-direction: column; gap: 12px; }
+  .card-header { display: flex; align-items: center; gap: 8px; }
+  .indicator { width: 8px; height: 8px; border-radius: 50%; transition: background-color 0.3s; }
+  .indicator.on { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+  .indicator.off { background-color: #ef4444; }
+  .card-header span { font-size: 11px; font-weight: 700; color: #777; letter-spacing: 0.5px; }
+  .line { flex-grow: 1; height: 1px; background: linear-gradient(90deg, #333, transparent); margin-left: 5px; }
+  .modes-grid { display: flex; flex-direction: column; gap: 4px; }
+  .modes-row { display: flex; gap: 4px; justify-content: center; }
+  .mode-chip {
+    flex: 1; padding: 8px 6px; background: #000; border: 1px solid #222;
+    border-radius: 4px; font-size: 13px; font-weight: 700; text-align: center;
+    color: #888; transition: all 0.2s;
+  }
+  .mode-chip.active { color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+  .display-area { display: flex; align-items: flex-start; justify-content: center; padding-top: 10px; }
+  .value-container {
+    display: flex; align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 60px; font-weight: 700; line-height: 1; white-space: pre;
+  }
+  .sign { width: 35px; text-align: right; margin-right: -5px; }
+  .unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px; margin-left: 5px; margin-top: 10px; color: inherit;
+  }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="card-inner">
+    <div class="card-header">
+      <div class="indicator off" id="indicator"></div>
+      <span>MULTIMETER</span>
+      <div class="line"></div>
+    </div>
+    <div class="modes-grid">
+      <div class="modes-row" id="modes-row-1"></div>
+      <div class="modes-row" id="modes-row-2"></div>
+    </div>
+    <div class="display-area">
+      <div class="value-container" id="value-container">
+        <span class="sign" id="sign"> </span>
+        <span class="value" id="value">0.0000</span>
+      </div>
+      <div class="unit" id="unit">VDC</div>
+    </div>
+  </div>
+</div>
+<script>
+const MODES_1 = [["VOLT","VDC"],["VOLT AC","VAC"],["CURR","ADC"],["CURR AC","AAC"],["RES","OHM"]];
+const MODES_2 = [["CONT","CNT"],["DIOD","DIO"],["CAP","CAP"],["FREQ","FRQ"],["TEMP","TMP"]];
+
+function buildModeChips() {
+  const r1 = document.getElementById("modes-row-1");
+  const r2 = document.getElementById("modes-row-2");
+  MODES_1.forEach(([key, label]) => {
+    const d = document.createElement("div");
+    d.className = "mode-chip";
+    d.dataset.mode = key;
+    d.textContent = label;
+    r1.appendChild(d);
+  });
+  MODES_2.forEach(([key, label]) => {
+    const d = document.createElement("div");
+    d.className = "mode-chip";
+    d.dataset.mode = key;
+    d.textContent = label;
+    r2.appendChild(d);
+  });
+}
+buildModeChips();
+
+async function poll() {
+  try {
+    const res = await fetch("/api/state");
+    const data = await res.json();
+    const owon = data.owon;
+    const cfg = data.config;
+
+    // Indicator
+    document.getElementById("indicator").className = "indicator " + (owon.is_communicating ? "on" : "off");
+
+    // Mode chips
+    document.querySelectorAll(".mode-chip").forEach(chip => {
+      const isActive = chip.dataset.mode === owon.mode;
+      chip.className = "mode-chip" + (isActive ? " active" : "");
+      if (isActive) {
+        chip.style.borderColor = cfg.accent_color;
+        chip.style.backgroundColor = cfg.accent_color + "33";
+      } else {
+        chip.style.borderColor = "#222";
+        chip.style.backgroundColor = "#000";
+      }
+    });
+
+    // Red alert logic
+    const isRedAlert = (owon.mode === "CONT" && owon.unit === "Ω" && owon.raw_float < 50.0) ||
+                       (owon.mode === "DIOD" && owon.unit === "V" && owon.raw_float < 0.2);
+    const fontColor = isRedAlert ? "#ef4444" : cfg.font_color;
+
+    // Value
+    const vc = document.getElementById("value-container");
+    vc.style.color = fontColor;
+    vc.style.textShadow = "0 0 15px " + fontColor + "33";
+    document.getElementById("sign").textContent = owon.value ? owon.value.charAt(0) : " ";
+    document.getElementById("value").textContent = owon.value ? owon.value.slice(1) : "0.0000";
+    const unitEl = document.getElementById("unit");
+    unitEl.textContent = owon.unit || "VDC";
+    unitEl.style.color = fontColor;
+
+    // Card background
+    document.getElementById("card").style.background = cfg.device_bg_color || "rgba(20,20,20,0.7)";
+  } catch(e) { /* silently retry */ }
+}
+
+setInterval(poll, 150);
+poll();
+</script>
+</body>
+</html>

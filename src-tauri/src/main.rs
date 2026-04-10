@@ -3,9 +3,11 @@
 
 mod config;
 mod devices;
+mod overlay;
 
 use config::{AppConfig, ConfigManager};
 use devices::{spawn_korad_thread, spawn_owon_thread, DeviceState, KoradData, OwonData};
+use overlay::spawn_overlay_server;
 use serde::Serialize;
 use serialport::available_ports;
 use std::sync::{Arc, Mutex};
@@ -125,6 +127,7 @@ fn main() {
 
     spawn_owon_thread(device_state.clone(), owon_port.clone());
     spawn_korad_thread(device_state.clone(), korad_port.clone());
+    spawn_overlay_server(device_state.clone(), config_manager.clone(), init_cfg.overlay_port);
 
     let state = AppState {
         config_manager,
