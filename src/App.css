@@ -1,0 +1,372 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg-color: #0f0f0f;
+  --card-bg: rgba(20, 20, 20, 0.7);
+  --font-color: #00ff41;
+  --accent-color: #2196f3;
+  --border-color: #2a2a2a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: #fff;
+  user-select: none;
+  overflow: hidden;
+}
+
+.container {
+  width: 100vw;
+  height: 100vh;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  letter-spacing: 1px;
+}
+
+.settings-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 5px;
+}
+
+.settings-btn:hover {
+  color: #fff;
+  transform: rotate(45deg);
+}
+
+/* Cards */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.indicator.on { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+.indicator.off { background-color: #ef4444; }
+
+.card-header span {
+  font-size: 11px;
+  font-weight: 700;
+  color: #777;
+  letter-spacing: 0.5px;
+}
+
+.line {
+  flex-grow: 1;
+  height: 1px;
+  background: linear-gradient(90deg, #333, transparent);
+  margin-left: 5px;
+}
+
+/* Modes Grid */
+.modes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modes-row {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.mode-chip {
+  flex: 1;
+  padding: 6px 4px;
+  background: #000;
+  border: 1px solid #222;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  color: #888;
+  transition: all 0.2s;
+}
+
+.mode-chip.active {
+  color: #fff;
+  text-shadow: 0 0 5px rgba(255,255,255,0.5);
+}
+
+/* Big Display Area */
+.display-area {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10px;
+}
+
+.value-container {
+  display: flex;
+  align-items: baseline;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 15px rgba(0,255,65,0.2);
+}
+
+.sign {
+  width: 35px;
+  text-align: right;
+  margin-right: -5px;
+}
+
+.unit {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  margin-left: 5px;
+  margin-top: 10px;
+  color: inherit;
+}
+
+/* PSU Badges */
+.psu-badges {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badges-left {
+  display: flex;
+  gap: 5px;
+}
+
+.badge {
+  padding: 4px 6px;
+  background: #000;
+  border: 1px solid #222;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  transition: all 0.3s;
+  color: #666;
+}
+
+.badge.alert {
+  background: #7f1d1d;
+  border-color: #f87171;
+  color: #fff;
+}
+
+.badge.mode-badge.cv {
+  background: #14532d;
+  border-color: #4ade80;
+  color: #fff;
+}
+
+.badge.mode-badge.cc {
+  background: #1e3a8a;
+  border-color: #60a5fa;
+  color: #fff;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.3s;
+}
+
+.status-badge.on {
+  background: #15803d;
+  border: 1px solid #4ade80;
+  color: #000;
+}
+
+.status-badge.off {
+  background: #b91c1c;
+  color: #000;
+}
+
+/* PSU Display */
+.psu-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.psu-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.psu-set {
+  font-size: 18px;
+  color: #9ca3af;
+  margin-bottom: -5px;
+}
+
+.psu-val {
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-shadow: 0 0 15px rgba(255,255,255,0.1);
+}
+
+.psu-watts {
+  font-size: 30px;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-top: 5px;
+  text-shadow: 0 0 10px rgba(251,191,36,0.5);
+}
+
+/* Settings */
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 20px 5px;
+  height: 100%;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.settings-panel h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+}
+
+.settings-header button {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-row label {
+  font-size: 12px;
+  color: #ccc;
+}
+
+.settings-row select,
+.settings-row input {
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background: #111;
+  color: #fff;
+  width: 150px;
+  font-size: 12px;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.settings-actions button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  color: #fff;
+}
+
+.settings-actions button.save-btn {
+  /* color dynamic via inline style */
+}
+
+.settings-actions button.cancel-btn {
+  background: #333;
+}
+
+.settings-actions button:hover {
+  opacity: 0.8;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 14px;
+  color: #888;
+}
