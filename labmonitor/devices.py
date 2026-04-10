@@ -165,7 +165,7 @@ class OwonDevice(DeviceBase):
 class KoradDevice(DeviceBase):
     def __init__(self):
         super().__init__("Korad KA3005PS", 9600)
-        self.data = {"v_out": "0.00", "i_out": "0.000", "v_set": "0.00", "i_set": "0.000", "output": False, "ocp": False, "ovp": False, "watts": "0.00", "mode": "CV"}
+        self.data = {"v_out": "0.000", "i_out": "0.000", "v_set": "0.000", "i_set": "0.000", "output": False, "ocp": False, "ovp": False, "watts": "0.00", "mode": "CV"}
 
     def update(self):
         if not self.connected: return

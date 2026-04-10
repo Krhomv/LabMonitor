@@ -51,10 +51,10 @@ def run_app(page: ft.Page):
     mode_row_1 = ft.Row(mode_chips[:5], spacing=4, alignment="center")
     mode_row_2 = ft.Row(mode_chips[5:], spacing=4, alignment="center")
 
-    psu_v = ft.Text("00.00 V", size=60, weight="bold", color=config["font_color"], font_family="Consolas")
+    psu_v = ft.Text("0.000 V", size=60, weight="bold", color=config["font_color"], font_family="Consolas")
     psu_a = ft.Text("0.000 A", size=60, weight="bold", color=config["font_color"], font_family="Consolas")
     psu_w = ft.Text("0.00 W", size=30, color=ft.Colors.AMBER_500, weight="bold")
-    psu_v_set = ft.Text("00.00 V", size=18, color=ft.Colors.GREY_400, font_family="Consolas")
+    psu_v_set = ft.Text("0.000 V", size=18, color=ft.Colors.GREY_400, font_family="Consolas")
     psu_a_set = ft.Text("0.000 A", size=18, color=ft.Colors.GREY_400, font_family="Consolas")
     
     def mk_badge(t): return ft.Container(content=ft.Text(t, size=10, weight="bold"), padding=ft.padding.symmetric(horizontal=6, vertical=4), border_radius=4, border=ft.border.all(1, ft.Colors.GREY_900), bgcolor=ft.Colors.BLACK, alignment=ft.Alignment.CENTER)
