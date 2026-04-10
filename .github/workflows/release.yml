@@ -36,4 +36,4 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Release ${{ github.ref_name }}'
           releaseDraft: false
-          prerelease: false
+          prerelease: true
