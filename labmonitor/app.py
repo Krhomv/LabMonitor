@@ -14,6 +14,7 @@ def run_app(page: ft.Page):
     page.window.height = 750
     page.window.resizable = False
     page.window.maximizable = False
+    page.window.prevent_close = True
     page.padding = 15
 
     owon = OwonDevice()
@@ -21,16 +22,29 @@ def run_app(page: ft.Page):
     
     app_running = [True]
     
-    def window_event(e):
-        if e.data == "close":
+    async def window_event(e):
+        if e.type == ft.WindowEventType.CLOSE:
             app_running[0] = False
+            # Show shutdown message
+            top_container.content = ft.Container(
+                content=ft.Column([
+                    ft.Text("Shutting down...", size=18, weight="bold", color=ft.Colors.GREY_400),
+                    ft.Text("Disconnecting hardware services", size=12, color=ft.Colors.GREY_600)
+                ], alignment="center", horizontal_alignment="center", spacing=10),
+                expand=True,
+                alignment=ft.Alignment.CENTER
+            )
+            page.update()
+            await asyncio.sleep(0.1) # Give UI time to render
+
             try:
                 owon.disconnect()
                 korad.disconnect()
             except:
                 pass
+            await page.window.destroy()
             
-    page.on_window_event = window_event
+    page.window.on_event = window_event
     owon_ind = ft.Container(width=8, height=8, border_radius=4, bgcolor=ft.Colors.RED_700)
     korad_ind = ft.Container(width=8, height=8, border_radius=4, bgcolor=ft.Colors.RED_700)
     
