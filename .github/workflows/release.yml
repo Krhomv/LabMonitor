@@ -11,6 +11,8 @@ jobs:
     name: Build Windows App
     runs-on: windows-latest
     
+    env:
+      PYTHONUTF8: 1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,7 +29,7 @@ jobs:
 
       - name: Build Windows App
         run: |
-          flet build windows --verbose
+          flet build windows --verbose --yes --no-rich-output
 
       - name: Archive Production Artifact
         shell: powershell
