@@ -16,7 +16,7 @@ def run_app(page: ft.Page):
     page.window.maximizable = False
     page.window.prevent_close = True
     page.padding = 15
-    page.window.icon = "assets/favicon.png"
+    page.window.icon = "favicon.png"
 
     owon = OwonDevice()
     korad = KoradDevice()
