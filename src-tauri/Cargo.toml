@@ -1,6 +1,6 @@
 [package]
 name = "labmonitor"
-version = "0.2.0-alpha"
+version = "1.0.0"
 description = "Serial display for Owon Multimeter and Korad PSU"
 authors = ["Krhomv"]
 edition = "2021"

@@ -36,7 +36,7 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Release ${{ github.ref_name }}'
           releaseDraft: false
-          prerelease: true
+          prerelease: false
           includeRelease: true
 
       - name: Upload portable exe
