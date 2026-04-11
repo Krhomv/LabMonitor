@@ -19,10 +19,12 @@ body {
   color: #fff;
   user-select: none;
   overflow: hidden;
+  background-color: #0f0f0f;
 }
 
 .container {
   width: 100%;
+  min-height: 100vh;
   padding: 15px;
   display: flex;
   flex-direction: column;
@@ -270,7 +272,7 @@ body {
   flex-direction: column;
   gap: 15px;
   padding: 20px 5px;
-  height: 520px;
+  height: 570px;
   overflow-y: auto;
   animation: slideIn 0.3s ease;
 }
