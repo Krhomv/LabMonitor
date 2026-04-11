@@ -121,13 +121,14 @@ body {
 
 .mode-chip {
   flex: 1;
-  padding: 8px 6px;
+  padding: 6px;
   background: #000;
   border: 1px solid #222;
   border-radius: 4px;
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #888;
   transition: all 0.2s;
 }

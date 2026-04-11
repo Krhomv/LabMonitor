@@ -94,9 +94,85 @@ function App() {
 
   if (!state) return <div className="loading" style={{ backgroundColor: config.bg_color }}>Connecting...</div>;
 
-  const modeLabels: Record<string, string> = {
-    "VOLT": "VDC", "VOLT AC": "VAC", "CURR": "ADC", "CURR AC": "AAC", 
-    "RES": "OHM", "CONT": "CNT", "DIOD": "DIO", "CAP": "CAP", "FREQ": "FRQ", "TEMP": "TMP"
+  const ModeIcon = ({ mode }: { mode: string }) => {
+    const s = { stroke: "currentColor", strokeWidth: 2.2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
+    switch (mode) {
+      case "VOLT": return ( // V⎓
+        <svg width="22" height="22" viewBox="0 0 24 24" {...s}>
+          <path d="M 4 7 L 8 17 L 12 7" />
+          <path d="M 15 10 H 22 M 15 14 H 16.5 M 17.75 14 H 19.25 M 20.5 14 H 22" />
+        </svg>
+      );
+      case "VOLT AC": return ( // V~
+        <svg width="22" height="22" viewBox="0 0 24 24" {...s}>
+          <path d="M 4 7 L 8 17 L 12 7" />
+          <path d="M 15 12 Q 16.75 8.5 18.5 12 T 22 12" />
+        </svg>
+      );
+      case "CURR": return ( // A⎓
+        <svg width="22" height="22" viewBox="0 0 24 24" {...s}>
+          <path d="M 4 17 L 8 7 L 12 17 M 5.5 13 H 10.5" />
+          <path d="M 15 10 H 22 M 15 14 H 16.5 M 17.75 14 H 19.25 M 20.5 14 H 22" />
+        </svg>
+      );
+      case "CURR AC": return ( // A~
+        <svg width="22" height="22" viewBox="0 0 24 24" {...s}>
+          <path d="M 4 17 L 8 7 L 12 17 M 5.5 13 H 10.5" />
+          <path d="M 15 12 Q 16.75 8.5 18.5 12 T 22 12" />
+        </svg>
+      );
+      case "RES": return ( // OHM
+        <svg width="22" height="22" viewBox="0 0 24 24" {...s}>
+          <path d="M 4.5 17 H 8.5 C 7.5 15.5 7 13.5 7 11 A 5 5 0 1 1 17 11 C 17 13.5 16.5 15.5 15.5 17 H 19.5" />
+        </svg>
+      );
+      case "CONT": return ( // CONT
+        <svg width="22" height="22" viewBox="0 0 24 24" {...s}>
+          <path d="M 9 12 A 0.5 0.5 0 1 1 8 12 A 0.5 0.5 0 1 1 9 12" fill="currentColor" stroke="none" />
+          <path d="M 12 9.5 A 3.5 3.5 0 0 1 12 14.5" />
+          <path d="M 15 7 A 7 7 0 0 1 15 17" />
+          <path d="M 18 4.5 A 10.5 10.5 0 0 1 18 19.5" />
+        </svg>
+      );
+      case "DIOD": return ( // DIOD
+        <svg width="22" height="22" viewBox="0 0 24 24" {...s}>
+          <path d="M 3 12 H 9 M 17 12 H 21" />
+          <path d="M 9 7 L 17 12 L 9 17 Z" />
+          <path d="M 17 7 V 17" />
+        </svg>
+      );
+      case "CAP": return ( // CAP
+        <svg width="22" height="22" viewBox="0 0 24 24" {...s}>
+          <path d="M 10 6 V 18 M 14 6 V 18 M 4 12 H 10 M 14 12 H 20" />
+        </svg>
+      );
+      case "FREQ": return ( // FREQ (Hz)
+        <svg width="22" height="22" viewBox="0 0 24 24" {...s}>
+          <path d="M 4 7 V 17 M 11 7 V 17 M 4 12 H 11" />
+          <path d="M 14 11 H 20 L 14 17 H 20" />
+        </svg>
+      );
+      case "TEMP": return ( // TEMP
+        <svg width="22" height="22" viewBox="0 0 24 24" {...s}>
+          <path d="M 10 14.5 V 6 A 2 2 0 0 1 14 6 V 14.5 A 4 4 0 1 1 10 14.5 Z" />
+          <path d="M 12 11 V 17" />
+        </svg>
+      );
+      default: return <span>{mode}</span>;
+    }
+  };
+
+  const modeLabels: Record<string, React.ReactNode> = {
+    "VOLT": <ModeIcon mode="VOLT" />, 
+    "VOLT AC": <ModeIcon mode="VOLT AC" />, 
+    "CURR": <ModeIcon mode="CURR" />, 
+    "CURR AC": <ModeIcon mode="CURR AC" />, 
+    "RES": <ModeIcon mode="RES" />, 
+    "CONT": <ModeIcon mode="CONT" />, 
+    "DIOD": <ModeIcon mode="DIOD" />, 
+    "CAP": <ModeIcon mode="CAP" />, 
+    "FREQ": <ModeIcon mode="FREQ" />, 
+    "TEMP": <ModeIcon mode="TEMP" />
   };
 
   const modesPart1 = ["VOLT", "VOLT AC", "CURR", "CURR AC", "RES"];
